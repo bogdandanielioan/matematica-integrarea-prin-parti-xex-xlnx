@@ -1,27 +1,1380 @@
-Am adăugat funcționalitatea de generare exerciții! 🎯
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrale prin Părți - Tutorial Interactiv</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --text-primary: #e8e6e3;
+            --text-secondary: #9a9590;
+            --accent-gold: #c9a227;
+            --accent-gold-dim: #8a6f1a;
+            --accent-blue: #4a90d9;
+            --accent-green: #4caf50;
+            --accent-purple: #9c7cf4;
+            --accent-red: #e57373;
+            --border-color: #2a2a35;
+        }
 
-**Noua secțiune "Exerciții" include:**
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-**Generare aleatorie:**
-- Selectează o integrală random din baza de date
-- 4 variante de răspuns (1 corectă + 3 greșite)
-- Răspunsurile sunt amestecate aleator
+        body {
+            font-family: 'Crimson Pro', Georgia, serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.7;
+        }
 
-**Filtre de dificultate:**
-- **Ușor** - integrale simple (∫ln(x))
-- **Mediu** - integrale standard (∫x·eˣ, ∫x·sin(x))
-- **Dificil** - integrale cu aplicare multiplă (∫x²·eˣ, ∫x³·eˣ)
-- **Toate** - mix din toate nivelurile
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(201, 162, 39, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(74, 144, 217, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
 
-**Funcționalități:**
-- ⏱️ **Timer** - măsoară timpul de rezolvare
-- 💡 **Indiciu** - ajutor pentru alegerea lui u și dv
-- 📝 **Arată Soluția** - rezolvare completă pas cu pas
-- 🎯 **Statistici** - răspunsuri corecte/greșite + serie curentă
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
 
-**Feedback vizual:**
-- Verde pentru răspuns corect
-- Roșu pentru greșit + marchează răspunsul corect
-- Animații și tranziții plăcute
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
 
-Acum poți alterna între **Tutorial** (pentru învățare) și **Exerciții** (pentru practică)!
+        header::after {
+            content: '∫';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            color: var(--accent-gold);
+            background: var(--bg-primary);
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .mode-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            padding: 16px 32px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--accent-gold-dim);
+            color: var(--text-primary);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--accent-gold-dim), var(--accent-gold));
+            border-color: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+
+        .mode-btn .icon {
+            font-size: 1.3rem;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Formula box */
+        .formula-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .formula-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-blue), var(--accent-purple));
+        }
+
+        .formula-box h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--accent-gold);
+        }
+
+        .main-formula {
+            text-align: center;
+            padding: 24px;
+            background: rgba(201, 162, 39, 0.05);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+
+        .formula-explanation {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .formula-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .formula-item .label {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-blue);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 40px;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--accent-gold-dim);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--accent-gold-dim), var(--accent-gold));
+            border-color: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+
+        /* Integral card */
+        .integral-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .integral-card.active {
+            display: block;
+        }
+
+        .card-header {
+            padding: 28px 32px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .integral-display {
+            font-size: 1.8rem;
+        }
+
+        .difficulty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .difficulty-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .difficulty-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-color);
+        }
+
+        .difficulty-dot.filled {
+            background: var(--accent-gold);
+        }
+
+        .card-body {
+            padding: 32px;
+        }
+
+        /* Steps */
+        .step {
+            margin-bottom: 28px;
+            padding-left: 48px;
+            position: relative;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.4s ease;
+        }
+
+        .step.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .step-number {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 32px;
+            height: 32px;
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .step-content {
+            background: var(--bg-secondary);
+            padding: 20px 24px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent-gold-dim);
+        }
+
+        .step-math {
+            margin: 12px 0;
+            padding: 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        /* Result box */
+        .result-box {
+            margin-top: 32px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.4s ease;
+        }
+
+        .result-box.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .result-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .result-formula {
+            font-size: 1.5rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: #d4ad2f;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-gold-dim);
+        }
+
+        /* Progress indicator */
+        .progress-bar {
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: 2px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-blue));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Quick reference */
+        .quick-ref {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 50px;
+        }
+
+        .quick-ref h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--accent-purple);
+        }
+
+        .ref-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .ref-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .ref-item .katex {
+            font-size: 1rem;
+        }
+
+        /* EXERCISE STYLES */
+        .exercise-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .exercise-header {
+            padding: 24px 32px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .exercise-stats {
+            display: flex;
+            gap: 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-value {
+            color: var(--accent-gold);
+            font-weight: 500;
+        }
+
+        .exercise-body {
+            padding: 40px 32px;
+        }
+
+        .exercise-problem {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .exercise-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+
+        .exercise-integral {
+            font-size: 2.2rem;
+            padding: 32px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            display: inline-block;
+            min-width: 300px;
+        }
+
+        .exercise-options {
+            margin-bottom: 32px;
+        }
+
+        .options-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .option-btn {
+            padding: 20px 24px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            border-color: var(--accent-green);
+            background: rgba(76, 175, 80, 0.15);
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--accent-red);
+            background: rgba(229, 115, 115, 0.15);
+        }
+
+        .option-btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-btn.show-correct {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .feedback.incorrect {
+            background: linear-gradient(135deg, rgba(229, 115, 115, 0.15), rgba(229, 115, 115, 0.05));
+            border: 1px solid rgba(229, 115, 115, 0.3);
+        }
+
+        .feedback-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .feedback-text {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .feedback-detail {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .hint-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-purple);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .hint-box.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .hint-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-purple);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .solution-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+            display: none;
+        }
+
+        .solution-box.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .solution-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-gold);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .solution-step {
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .exercise-controls {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 32px;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .diff-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .diff-btn:hover {
+            border-color: var(--accent-gold-dim);
+        }
+
+        .diff-btn.active {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+            background: rgba(201, 162, 39, 0.1);
+        }
+
+        .timer {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .timer.warning {
+            color: var(--accent-red);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 60px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px 16px;
+            }
+            
+            .card-header, .exercise-header {
+                padding: 20px;
+            }
+            
+            .card-body, .exercise-body {
+                padding: 20px;
+            }
+            
+            .integral-display {
+                font-size: 1.4rem;
+            }
+            
+            .exercise-integral {
+                font-size: 1.6rem;
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .step {
+                padding-left: 40px;
+            }
+            
+            .mode-btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Integrale prin Părți</h1>
+            <p class="subtitle">Tutorial interactiv cu soluții pas cu pas</p>
+        </header>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="switchMode('tutorial')">
+                <span class="icon">📚</span>
+                <span>Tutorial</span>
+            </button>
+            <button class="mode-btn" onclick="switchMode('exercise')">
+                <span class="icon">✏️</span>
+                <span>Exerciții</span>
+            </button>
+        </div>
+
+        <!-- TUTORIAL SECTION -->
+        <div class="section active" id="tutorialSection">
+            <div class="formula-box">
+                <h2>Formula de Integrare prin Părți</h2>
+                <div class="main-formula" id="mainFormula"></div>
+                <div class="formula-explanation">
+                    <div class="formula-item">
+                        <div class="label">u</div>
+                        <div>Funcția pe care o derivăm</div>
+                    </div>
+                    <div class="formula-item">
+                        <div class="label">dv</div>
+                        <div>Funcția pe care o integrăm</div>
+                    </div>
+                    <div class="formula-item">
+                        <div class="label">LIATE</div>
+                        <div>Log, Inverse trig, Algebric, Trig, Exponențială</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs" id="tabs"></div>
+            <div id="integralsContainer"></div>
+
+            <div class="quick-ref">
+                <h3>Referință Rapidă - Integrale Fundamentale</h3>
+                <div class="ref-grid" id="refGrid"></div>
+            </div>
+        </div>
+
+        <!-- EXERCISE SECTION -->
+        <div class="section" id="exerciseSection">
+            <div class="exercise-container">
+                <div class="exercise-header">
+                    <div class="exercise-stats">
+                        <div class="stat">
+                            <span>✓</span>
+                            <span>Corecte: <span class="stat-value" id="correctCount">0</span></span>
+                        </div>
+                        <div class="stat">
+                            <span>✗</span>
+                            <span>Greșite: <span class="stat-value" id="wrongCount">0</span></span>
+                        </div>
+                        <div class="stat">
+                            <span>🎯</span>
+                            <span>Serie: <span class="stat-value" id="streakCount">0</span></span>
+                        </div>
+                    </div>
+                    <div class="timer" id="timer">00:00</div>
+                </div>
+
+                <div class="exercise-body">
+                    <div class="difficulty-selector">
+                        <button class="diff-btn active" onclick="setDifficulty(1)">Ușor</button>
+                        <button class="diff-btn" onclick="setDifficulty(2)">Mediu</button>
+                        <button class="diff-btn" onclick="setDifficulty(3)">Dificil</button>
+                        <button class="diff-btn" onclick="setDifficulty(0)">Toate</button>
+                    </div>
+
+                    <div class="exercise-problem">
+                        <div class="exercise-label">Calculează integrala:</div>
+                        <div class="exercise-integral" id="exerciseIntegral"></div>
+                    </div>
+
+                    <div class="hint-box" id="hintBox">
+                        <div class="hint-title">
+                            <span>💡</span>
+                            <span>Indiciu</span>
+                        </div>
+                        <div class="hint-content" id="hintContent"></div>
+                    </div>
+
+                    <div class="feedback" id="feedback">
+                        <div class="feedback-icon" id="feedbackIcon"></div>
+                        <div class="feedback-text" id="feedbackText"></div>
+                        <div class="feedback-detail" id="feedbackDetail"></div>
+                    </div>
+
+                    <div class="exercise-options">
+                        <div class="options-label">Alege răspunsul corect:</div>
+                        <div class="options-grid" id="optionsGrid"></div>
+                    </div>
+
+                    <div class="solution-box" id="solutionBox">
+                        <div class="solution-title">📝 Soluție completă:</div>
+                        <div class="solution-steps" id="solutionSteps"></div>
+                    </div>
+
+                    <div class="exercise-controls">
+                        <button class="btn btn-secondary" onclick="showHint()">
+                            <span>💡</span>
+                            <span>Indiciu</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSolution()">
+                            <span>📝</span>
+                            <span>Arată Soluția</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="generateExercise()">
+                            <span>🔄</span>
+                            <span>Exercițiu Nou</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Creat pentru învățarea calculului integral • Integrale prin părți</p>
+        </footer>
+    </div>
+
+    <script>
+        // DATA
+        const integrals = [
+            {
+                id: 'xln',
+                name: '∫ x·ln(x)',
+                display: '\\int x \\cdot \\ln(x) \\, dx',
+                difficulty: 2,
+                hint: 'Folosește regula LIATE: Logaritmul are prioritate, deci u = ln(x)',
+                steps: [
+                    { title: 'Alegem u și dv folosind regula LIATE', content: 'Logaritmul are prioritate față de funcția algebrică.', math: 'u = \\ln(x), \\quad du = \\frac{1}{x}dx, \\quad dv = x \\, dx, \\quad v = \\frac{x^2}{2}' },
+                    { title: 'Aplicăm formula', content: '∫u·dv = u·v - ∫v·du', math: '\\int x \\ln(x) dx = \\frac{x^2}{2} \\ln(x) - \\int \\frac{x^2}{2} \\cdot \\frac{1}{x} dx = \\frac{x^2 \\ln(x)}{2} - \\frac{x^2}{4} + C' }
+                ],
+                result: '\\frac{x^2 \\ln(x)}{2} - \\frac{x^2}{4} + C',
+                wrongAnswers: ['\\frac{x^2 \\ln(x)}{2} + \\frac{x^2}{4} + C', 'x^2 \\ln(x) - \\frac{x^2}{2} + C', '\\frac{x \\ln(x)}{2} - \\frac{x}{4} + C']
+            },
+            {
+                id: 'x2ln',
+                name: '∫ x²·ln(x)',
+                display: '\\int x^2 \\cdot \\ln(x) \\, dx',
+                difficulty: 2,
+                hint: 'Similar cu ∫x·ln(x), dar v = x³/3',
+                steps: [
+                    { title: 'Alegem u și dv', content: 'u = ln(x), dv = x²dx', math: 'u = \\ln(x), \\quad du = \\frac{1}{x}dx, \\quad dv = x^2 dx, \\quad v = \\frac{x^3}{3}' },
+                    { title: 'Aplicăm formula', content: 'Calculăm integrala rămasă', math: '= \\frac{x^3 \\ln(x)}{3} - \\frac{1}{3}\\int x^2 dx = \\frac{x^3 \\ln(x)}{3} - \\frac{x^3}{9} + C' }
+                ],
+                result: '\\frac{x^3 \\ln(x)}{3} - \\frac{x^3}{9} + C',
+                wrongAnswers: ['\\frac{x^3 \\ln(x)}{3} + \\frac{x^3}{9} + C', '\\frac{x^2 \\ln(x)}{2} - \\frac{x^3}{9} + C', 'x^3 \\ln(x) - \\frac{x^3}{3} + C']
+            },
+            {
+                id: 'xex',
+                name: '∫ x·eˣ',
+                display: '\\int x \\cdot e^x \\, dx',
+                difficulty: 2,
+                hint: 'Alegem u = x (se derivează ușor la 1) și dv = eˣdx',
+                steps: [
+                    { title: 'Alegem u și dv', content: 'u = x, dv = eˣdx', math: 'u = x, \\quad du = dx, \\quad dv = e^x dx, \\quad v = e^x' },
+                    { title: 'Aplicăm formula', content: 'Și factorizăm', math: '\\int x e^x dx = xe^x - \\int e^x dx = xe^x - e^x + C = e^x(x-1) + C' }
+                ],
+                result: 'e^x(x - 1) + C',
+                wrongAnswers: ['e^x(x + 1) + C', 'xe^x + C', 'e^x(x - 2) + C']
+            },
+            {
+                id: 'x2ex',
+                name: '∫ x²·eˣ',
+                display: '\\int x^2 \\cdot e^x \\, dx',
+                difficulty: 3,
+                hint: 'Trebuie să aplici integrarea prin părți de DOUĂ ori!',
+                steps: [
+                    { title: 'Prima aplicare', content: 'u = x², dv = eˣdx', math: '\\int x^2 e^x dx = x^2 e^x - 2\\int x e^x dx' },
+                    { title: 'A doua aplicare', content: 'Știm că ∫xeˣdx = eˣ(x-1)', math: '= x^2 e^x - 2e^x(x-1) + C = e^x(x^2 - 2x + 2) + C' }
+                ],
+                result: 'e^x(x^2 - 2x + 2) + C',
+                wrongAnswers: ['e^x(x^2 + 2x + 2) + C', 'e^x(x^2 - 2x - 2) + C', 'e^x(x^2 - x + 1) + C']
+            },
+            {
+                id: 'xsinx',
+                name: '∫ x·sin(x)',
+                display: '\\int x \\cdot \\sin(x) \\, dx',
+                difficulty: 2,
+                hint: 'u = x, dv = sin(x)dx. Atenție: ∫sin(x)dx = -cos(x)',
+                steps: [
+                    { title: 'Alegem u și dv', content: 'u = x, dv = sin(x)dx', math: 'u = x, \\quad du = dx, \\quad dv = \\sin(x)dx, \\quad v = -\\cos(x)' },
+                    { title: 'Aplicăm formula', content: 'Și simplificăm', math: '= -x\\cos(x) + \\int \\cos(x)dx = -x\\cos(x) + \\sin(x) + C' }
+                ],
+                result: '\\sin(x) - x\\cos(x) + C',
+                wrongAnswers: ['\\sin(x) + x\\cos(x) + C', '-\\sin(x) - x\\cos(x) + C', 'x\\sin(x) + \\cos(x) + C']
+            },
+            {
+                id: 'x2sinx',
+                name: '∫ x²·sin(x)',
+                display: '\\int x^2 \\cdot \\sin(x) \\, dx',
+                difficulty: 3,
+                hint: 'Aplică de două ori integrarea prin părți.',
+                steps: [
+                    { title: 'Prima aplicare', content: 'u = x², dv = sin(x)dx', math: '\\int x^2 \\sin(x)dx = -x^2\\cos(x) + 2\\int x\\cos(x)dx' },
+                    { title: 'A doua aplicare pentru ∫xcos(x)', content: '∫xcos(x)dx = xsin(x) + cos(x)', math: '= -x^2\\cos(x) + 2x\\sin(x) + 2\\cos(x) + C' }
+                ],
+                result: '-x^2\\cos(x) + 2x\\sin(x) + 2\\cos(x) + C',
+                wrongAnswers: ['x^2\\cos(x) + 2x\\sin(x) + 2\\cos(x) + C', '-x^2\\cos(x) - 2x\\sin(x) + 2\\cos(x) + C', '-x^2\\cos(x) + 2x\\sin(x) - 2\\cos(x) + C']
+            },
+            {
+                id: 'xcosx',
+                name: '∫ x·cos(x)',
+                display: '\\int x \\cdot \\cos(x) \\, dx',
+                difficulty: 2,
+                hint: 'u = x, dv = cos(x)dx',
+                steps: [
+                    { title: 'Alegem u și dv', content: 'u = x, dv = cos(x)dx', math: 'u = x, \\quad du = dx, \\quad dv = \\cos(x)dx, \\quad v = \\sin(x)' },
+                    { title: 'Aplicăm formula', content: 'Și simplificăm', math: '= x\\sin(x) - \\int \\sin(x)dx = x\\sin(x) + \\cos(x) + C' }
+                ],
+                result: 'x\\sin(x) + \\cos(x) + C',
+                wrongAnswers: ['x\\sin(x) - \\cos(x) + C', '-x\\sin(x) + \\cos(x) + C', 'x\\cos(x) + \\sin(x) + C']
+            },
+            {
+                id: 'lnx',
+                name: '∫ ln(x)',
+                display: '\\int \\ln(x) \\, dx',
+                difficulty: 1,
+                hint: 'Scrie ln(x) = ln(x)·1 și alege u = ln(x), dv = dx',
+                steps: [
+                    { title: 'Alegem u și dv', content: 'u = ln(x), dv = dx', math: 'u = \\ln(x), \\quad du = \\frac{1}{x}dx, \\quad dv = dx, \\quad v = x' },
+                    { title: 'Aplicăm formula', content: 'Și simplificăm', math: '= x\\ln(x) - \\int x \\cdot \\frac{1}{x}dx = x\\ln(x) - x + C' }
+                ],
+                result: 'x\\ln(x) - x + C',
+                wrongAnswers: ['x\\ln(x) + x + C', '\\ln(x) - x + C', 'x\\ln(x) - 1 + C']
+            },
+            {
+                id: 'x3ex',
+                name: '∫ x³·eˣ',
+                display: '\\int x^3 \\cdot e^x \\, dx',
+                difficulty: 3,
+                hint: 'Aplică de trei ori sau folosește rezultatele anterioare!',
+                steps: [
+                    { title: 'Prima aplicare', content: 'u = x³, dv = eˣdx', math: '\\int x^3 e^x dx = x^3 e^x - 3\\int x^2 e^x dx' },
+                    { title: 'Folosim ∫x²eˣ', content: '∫x²eˣdx = eˣ(x²-2x+2)', math: '= e^x(x^3 - 3x^2 + 6x - 6) + C' }
+                ],
+                result: 'e^x(x^3 - 3x^2 + 6x - 6) + C',
+                wrongAnswers: ['e^x(x^3 + 3x^2 + 6x + 6) + C', 'e^x(x^3 - 3x^2 - 6x - 6) + C', 'e^x(x^3 - 3x^2 + 6x + 6) + C']
+            },
+            {
+                id: 'ln2x',
+                name: '∫ ln²(x)',
+                display: '\\int \\ln^2(x) \\, dx',
+                difficulty: 3,
+                hint: 'u = ln²(x), dv = dx. Apoi mai aplică o dată pentru ∫ln(x).',
+                steps: [
+                    { title: 'Prima aplicare', content: 'u = ln²(x), dv = dx', math: '\\int \\ln^2(x)dx = x\\ln^2(x) - 2\\int \\ln(x)dx' },
+                    { title: 'Folosim ∫ln(x)', content: '∫ln(x)dx = xln(x) - x', math: '= x\\ln^2(x) - 2x\\ln(x) + 2x + C' }
+                ],
+                result: 'x\\ln^2(x) - 2x\\ln(x) + 2x + C',
+                wrongAnswers: ['x\\ln^2(x) + 2x\\ln(x) + 2x + C', 'x\\ln^2(x) - 2x\\ln(x) - 2x + C', '\\ln^2(x) - 2\\ln(x) + 2 + C']
+            }
+        ];
+
+        const references = [
+            { left: '\\int x^n dx', right: '\\frac{x^{n+1}}{n+1} + C' },
+            { left: '\\int e^x dx', right: 'e^x + C' },
+            { left: '\\int \\sin(x) dx', right: '-\\cos(x) + C' },
+            { left: '\\int \\cos(x) dx', right: '\\sin(x) + C' },
+            { left: '\\int \\frac{1}{x} dx', right: '\\ln|x| + C' },
+            { left: '\\int a^x dx', right: '\\frac{a^x}{\\ln(a)} + C' }
+        ];
+
+        // STATE
+        let currentIntegral = 0;
+        let visibleSteps = {};
+        let currentExercise = null;
+        let selectedDifficulty = 1;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let streak = 0;
+        let timerInterval = null;
+        let seconds = 0;
+        let answered = false;
+
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMainFormula();
+            renderTabs();
+            renderIntegrals();
+            renderReferences();
+            showIntegral(0);
+            generateExercise();
+        });
+
+        // MODE SWITCHING
+        function switchMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', (mode === 'tutorial' && i === 0) || (mode === 'exercise' && i === 1));
+            });
+            
+            document.getElementById('tutorialSection').classList.toggle('active', mode === 'tutorial');
+            document.getElementById('exerciseSection').classList.toggle('active', mode === 'exercise');
+            
+            if (mode === 'exercise') {
+                startTimer();
+            } else {
+                stopTimer();
+            }
+        }
+
+        // TUTORIAL FUNCTIONS
+        function renderMainFormula() {
+            katex.render('\\int u \\, dv = u \\cdot v - \\int v \\, du', document.getElementById('mainFormula'), { displayMode: true });
+        }
+
+        function renderTabs() {
+            const tabsContainer = document.getElementById('tabs');
+            integrals.forEach((integral, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'tab-btn' + (index === 0 ? ' active' : '');
+                btn.textContent = integral.name;
+                btn.onclick = () => showIntegral(index);
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        function renderIntegrals() {
+            const container = document.getElementById('integralsContainer');
+            
+            integrals.forEach((integral, index) => {
+                visibleSteps[index] = 0;
+                
+                const card = document.createElement('div');
+                card.className = 'integral-card' + (index === 0 ? ' active' : '');
+                card.id = `integral-${index}`;
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="integral-display" id="display-${index}"></div>
+                        <div class="difficulty">
+                            <span>Dificultate:</span>
+                            <div class="difficulty-dots">
+                                ${[1,2,3].map(d => `<div class="difficulty-dot ${d <= integral.difficulty ? 'filled' : ''}"></div>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-${index}" style="width: 0%"></div>
+                        </div>
+                        <div class="steps" id="steps-${index}">
+                            ${integral.steps.map((step, stepIndex) => `
+                                <div class="step" id="step-${index}-${stepIndex}">
+                                    <div class="step-number">${stepIndex + 1}</div>
+                                    <div class="step-title">${step.title}</div>
+                                    <div class="step-content">
+                                        <p>${step.content}</p>
+                                        <div class="step-math" id="math-${index}-${stepIndex}"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="result-box" id="result-${index}">
+                            <div class="result-label">✓ Rezultat Final</div>
+                            <div class="result-formula" id="result-formula-${index}"></div>
+                        </div>
+                        <div class="controls">
+                            <button class="btn btn-primary" onclick="nextStep(${index})">Următorul Pas →</button>
+                            <button class="btn btn-secondary" onclick="showAll(${index})">Arată Tot</button>
+                            <button class="btn btn-secondary" onclick="reset(${index})">Resetează</button>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+
+            setTimeout(() => {
+                integrals.forEach((integral, index) => {
+                    katex.render(integral.display, document.getElementById(`display-${index}`), { displayMode: true });
+                    katex.render(integral.result, document.getElementById(`result-formula-${index}`), { displayMode: true });
+                    integral.steps.forEach((step, stepIndex) => {
+                        katex.render(step.math, document.getElementById(`math-${index}-${stepIndex}`), { displayMode: true });
+                    });
+                });
+            }, 100);
+        }
+
+        function renderReferences() {
+            const grid = document.getElementById('refGrid');
+            references.forEach(ref => {
+                const item = document.createElement('div');
+                item.className = 'ref-item';
+                item.innerHTML = `<span></span><span>→</span><span></span>`;
+                grid.appendChild(item);
+                const spans = item.querySelectorAll('span');
+                katex.render(ref.left, spans[0]);
+                katex.render(ref.right, spans[2]);
+            });
+        }
+
+        function showIntegral(index) {
+            currentIntegral = index;
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+            document.querySelectorAll('.integral-card').forEach((card, i) => card.classList.toggle('active', i === index));
+        }
+
+        function nextStep(integralIndex) {
+            const integral = integrals[integralIndex];
+            const current = visibleSteps[integralIndex];
+            
+            if (current < integral.steps.length) {
+                document.getElementById(`step-${integralIndex}-${current}`).classList.add('visible');
+                visibleSteps[integralIndex]++;
+                updateProgress(integralIndex);
+            }
+            
+            if (visibleSteps[integralIndex] === integral.steps.length) {
+                document.getElementById(`result-${integralIndex}`).classList.add('visible');
+            }
+        }
+
+        function showAll(integralIndex) {
+            const integral = integrals[integralIndex];
+            integral.steps.forEach((_, stepIndex) => {
+                setTimeout(() => {
+                    document.getElementById(`step-${integralIndex}-${stepIndex}`).classList.add('visible');
+                }, stepIndex * 150);
+            });
+            visibleSteps[integralIndex] = integral.steps.length;
+            setTimeout(() => {
+                document.getElementById(`result-${integralIndex}`).classList.add('visible');
+                updateProgress(integralIndex);
+            }, integral.steps.length * 150);
+        }
+
+        function reset(integralIndex) {
+            const integral = integrals[integralIndex];
+            integral.steps.forEach((_, stepIndex) => {
+                document.getElementById(`step-${integralIndex}-${stepIndex}`).classList.remove('visible');
+            });
+            document.getElementById(`result-${integralIndex}`).classList.remove('visible');
+            visibleSteps[integralIndex] = 0;
+            updateProgress(integralIndex);
+        }
+
+        function updateProgress(integralIndex) {
+            const integral = integrals[integralIndex];
+            const progress = (visibleSteps[integralIndex] / integral.steps.length) * 100;
+            document.getElementById(`progress-${integralIndex}`).style.width = `${progress}%`;
+        }
+
+        // EXERCISE FUNCTIONS
+        function setDifficulty(diff) {
+            selectedDifficulty = diff;
+            document.querySelectorAll('.diff-btn').forEach((btn, i) => {
+                const btnDiff = i === 3 ? 0 : i + 1;
+                btn.classList.toggle('active', btnDiff === diff);
+            });
+            generateExercise();
+        }
+
+        function generateExercise() {
+            answered = false;
+            document.getElementById('hintBox').classList.remove('show');
+            document.getElementById('solutionBox').classList.remove('show');
+            document.getElementById('feedback').classList.remove('show', 'correct', 'incorrect');
+            
+            let availableIntegrals = selectedDifficulty === 0 ? integrals : integrals.filter(i => i.difficulty === selectedDifficulty);
+            if (availableIntegrals.length === 0) availableIntegrals = integrals;
+            
+            currentExercise = availableIntegrals[Math.floor(Math.random() * availableIntegrals.length)];
+            
+            katex.render(currentExercise.display, document.getElementById('exerciseIntegral'), { displayMode: true });
+            
+            const options = [
+                { answer: currentExercise.result, correct: true },
+                ...currentExercise.wrongAnswers.map(a => ({ answer: a, correct: false }))
+            ];
+            
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+            
+            options.forEach((opt, index) => {
+                const btn = document.createElement('div');
+                btn.className = 'option-btn';
+                btn.dataset.correct = opt.correct;
+                btn.onclick = () => selectAnswer(btn, opt.correct);
+                optionsGrid.appendChild(btn);
+                katex.render(opt.answer, btn, { displayMode: true });
+            });
+            
+            seconds = 0;
+            updateTimerDisplay();
+        }
+
+        function selectAnswer(btn, isCorrect) {
+            if (answered) return;
+            answered = true;
+            
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.add('disabled'));
+            
+            const feedback = document.getElementById('feedback');
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                feedback.classList.add('show', 'correct');
+                document.getElementById('feedbackIcon').textContent = '🎉';
+                document.getElementById('feedbackText').textContent = 'Corect!';
+                document.getElementById('feedbackDetail').textContent = `Ai rezolvat în ${formatTime(seconds)}`;
+                correctCount++;
+                streak++;
+            } else {
+                btn.classList.add('incorrect');
+                document.querySelectorAll('.option-btn').forEach(b => {
+                    if (b.dataset.correct === 'true') b.classList.add('show-correct');
+                });
+                feedback.classList.add('show', 'incorrect');
+                document.getElementById('feedbackIcon').textContent = '😔';
+                document.getElementById('feedbackText').textContent = 'Greșit!';
+                document.getElementById('feedbackDetail').textContent = 'Vezi răspunsul corect marcat cu verde';
+                wrongCount++;
+                streak = 0;
+            }
+            
+            updateStats();
+        }
+
+        function showHint() {
+            document.getElementById('hintContent').textContent = currentExercise.hint;
+            document.getElementById('hintBox').classList.add('show');
+        }
+
+        function showSolution() {
+            const solutionSteps = document.getElementById('solutionSteps');
+            solutionSteps.innerHTML = '';
+            
+            currentExercise.steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'solution-step';
+                stepDiv.innerHTML = `<strong>${index + 1}. ${step.title}</strong><br>${step.content}`;
+                solutionSteps.appendChild(stepDiv);
+                
+                const mathDiv = document.createElement('div');
+                mathDiv.style.marginTop = '8px';
+                solutionSteps.appendChild(mathDiv);
+                katex.render(step.math, mathDiv, { displayMode: true });
+            });
+            
+            document.getElementById('solutionBox').classList.add('show');
+            
+            if (!answered) {
+                answered = true;
+                document.querySelectorAll('.option-btn').forEach(b => {
+                    b.classList.add('disabled');
+                    if (b.dataset.correct === 'true') b.classList.add('show-correct');
+                });
+                wrongCount++;
+                streak = 0;
+                updateStats();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('correctCount').textContent = correctCount;
+            document.getElementById('wrongCount').textContent = wrongCount;
+            document.getElementById('streakCount').textContent = streak;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timer = document.getElementById('timer');
+            timer.textContent = formatTime(seconds);
+            timer.classList.toggle('warning', seconds > 120);
+        }
+
+        function formatTime(secs) {
+            const mins = Math.floor(secs / 60);
+            const s = secs % 60;
+            return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>
